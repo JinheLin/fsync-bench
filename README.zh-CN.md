@@ -33,9 +33,26 @@ python3 scripts/run-benchmarks.py \
 
 参考：[fsync 手册](https://man7.org/linux/man-pages/man2/fsync.2.html)、[fallocate 手册](https://man7.org/linux/man-pages/man2/fallocate.2.html)、[Linux iomap 映射说明](https://docs.kernel.org/filesystems/iomap/design.html)。
 
-## 历史数据与本次重跑
+## 本次完整提交耗时
 
-本机 Intel SSDPE2KX040T8 NVMe、XFS、Linux 5.14、release 构建、16 KiB buffered 写入，每次写后同步。下表是**同步调用的平均耗时**，不包含前面的写入：
+性能比较以 **write + sync 完整提交耗时、提交 p99 和 commits/s** 为主。两个程序都已测量从开始写入到 sync 成功返回的区间；write、sync 单独列出用于解释耗时组成。特别是 buffered/direct 对比，direct 的写入本身可能已等待数据 I/O，只比较 sync 会遗漏这部分成本。
+
+本机 Intel SSDPE2KX040T8 NVMe、XFS、Linux 5.14、release 构建、16 KiB buffered 写入，每次写后同步，本次重跑结果：
+
+| 文件状态 | 同步方法 | 平均 write + sync，µs | 平均 write，µs | 平均 sync，µs | MiB/s |
+|---|---|---:|---:|---:|---:|
+| append | fsync | **55.64** | 17.37 | 38.27 | 280.43 |
+| append | fdatasync | **56.14** | 17.88 | 38.26 | 277.93 |
+| fallocate 后首次写入 | fsync | **55.77** | 17.09 | 38.68 | 279.78 |
+| fallocate 后首次写入 | fdatasync | **55.17** | 16.65 | 38.52 | 282.84 |
+| 已初始化覆盖 | fsync | **36.54** | 12.39 | 24.15 | 426.88 |
+| 已初始化覆盖 | fdatasync | **28.74** | 11.41 | 17.33 | 542.37 |
+
+`--sync-every 1` 时，一个 buffered batch 就是一次完整提交。完整提交均值等于同一组操作的 write 均值与 sync 均值之和；分位数必须基于完整提交样本计算，不能将 write p99 与 sync p99 相加。吞吐还包含测量循环开销。
+
+## 历史 sync 分项数据
+
+前面的 39 / 39 / 26 / 18 µs 是**同步调用的平均耗时**，不包含写入；用于分析同步路径，并与完整提交指标一起解读：
 
 | 文件状态 | 同步方法 | 前次 2026-10-04，µs | 本次 2026-10-07，µs |
 |---|---|---:|---:|
@@ -46,7 +63,7 @@ python3 scripts/run-benchmarks.py \
 
 前面的约 39 / 39 / 26 / 18 µs 是历史实测，不是理论估值。本次重跑保留了相同趋势；前次为 6 轮，本次为 8 轮。各项 metadata 的分解用于解释可能的语义工作，不能用这些均值差直接计算某个 inode 字段、extent 操作或 journal transaction 的独立成本。实验没有隔离其他进程 I/O，也没有通过块层跟踪逐项归因。
 
-WAL 应比较**完整提交耗时（write + sync）**：direct 写入本身可能已等待数据 I/O，不能只看 sync 更短。本次 initialized 状态下，buffered 的 fsync / fdatasync 平均提交为 36.13 / 31.61 µs，direct 为 23.33 / 16.50 µs；普通 append 下两种 I/O 平均提交约 55–57 µs。[报告](results/2026-10-07/REPORT.md)列出全部 12 种组合、吞吐与合并样本的 p99。
+独立 WAL 程序本次 initialized 状态下，buffered 的 fsync / fdatasync 平均提交为 36.13 / 31.61 µs，direct 为 23.33 / 16.50 µs；普通 append 下两种 I/O 平均提交约 55–57 µs。[报告](results/2026-10-07/REPORT.md)列出全部 12 种组合、吞吐与合并样本的 p99。比较时应选择同一程序、相同文件状态和 record 大小的结果。
 
 本机设备队列报告 `write through`。initialized direct + fdatasync 平均 sync 0.41 µs，write 16.10 µs；strace 核对了每次写后确实调用同步。这与已有映射、direct 写入已完成数据 I/O及设备缓存配置相符，但并未单独量化各部分成本。[内核写缓存说明](https://docs.kernel.org/block/writeback_cache_control.html)
 

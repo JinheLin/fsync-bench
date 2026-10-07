@@ -40,7 +40,24 @@ Semantics: [fsync(2)](https://man7.org/linux/man-pages/man2/fsync.2.html), [fall
 
 ## Measured results
 
-Buffered micro-benchmark, 16 KiB, one sync per write, Intel SSDPE2KX040T8 NVMe / XFS / Linux 5.14. Values below are **mean sync-call latency**, excluding the preceding write:
+Use **write + sync commit latency**, commit p99 and commits/s as the primary performance metrics. Both binaries already time the complete write-and-sync interval; separate write/sync timings help explain where time is spent. Comparing only sync latency can misrepresent total cost, especially across buffered and direct I/O: direct writes may wait for data I/O before the sync begins.
+
+Buffered micro-benchmark rerun, 16 KiB, one sync per write, Intel SSDPE2KX040T8 NVMe / XFS / Linux 5.14:
+
+| File state | Sync | Mean write+sync (us) | Mean write (us) | Mean sync (us) | MiB/s |
+|---|---|---:|---:|---:|---:|
+| Append | fsync | **55.64** | 17.37 | 38.27 | 280.43 |
+| Append | fdatasync | **56.14** | 17.88 | 38.26 | 277.93 |
+| Fallocate, first write | fsync | **55.77** | 17.09 | 38.68 | 279.78 |
+| Fallocate, first write | fdatasync | **55.17** | 16.65 | 38.52 | 282.84 |
+| Initialized overwrite | fsync | **36.54** | 12.39 | 24.15 | 426.88 |
+| Initialized overwrite | fdatasync | **28.74** | 11.41 | 17.33 | 542.37 |
+
+With `--sync-every 1`, a buffered batch is one complete commit. Mean write+sync equals the sum of the two component means from the same operations; percentiles must use complete commit samples, not a sum of write/sync percentiles. Throughput includes measurement-loop overhead as well.
+
+### Historical sync-call comparison
+
+The earlier 39 / 39 / 26 / 18 us figures describe the **sync call alone**, excluding the preceding write. They remain useful for diagnosing the filesystem path, alongside complete commit metrics:
 
 | File state | Sync | Earlier run, 2026-10-04 (us) | Rerun, 2026-10-07 (us) |
 |---|---|---:|---:|
@@ -51,7 +68,7 @@ Buffered micro-benchmark, 16 KiB, one sync per write, Intel SSDPE2KX040T8 NVMe /
 
 The earlier approximate 39 / 39 / 26 / 18 us pattern is reproduced within run-to-run variation. The historical run used 6 rounds; the rerun uses 8. Initialized overwrites separate the two sync methods more clearly here. Differences do not measure the isolated cost of an inode field, an extent-tree operation or a journal transaction. No block-level profiling or power-failure test is performed.
 
-For WAL comparisons, use **write + sync commit latency** and commits/s: direct I/O can shift waiting into `pwrite`. On the rerun, initialized buffered fsync / fdatasync mean commits were 36.13 / 31.61 us, compared with 23.33 / 16.50 us for direct. Ordinary append mean commits were about 55–57 us in both modes. All 12 combinations, per-round data and pooled p99 values are in the [full report](results/2026-10-07/REPORT.md).
+In the separate WAL binary, initialized buffered fsync / fdatasync mean commits were 36.13 / 31.61 us, compared with 23.33 / 16.50 us for direct. Ordinary append mean commits were about 55–57 us in both modes. All 12 combinations, per-round data and pooled p99 values are in the [full report](results/2026-10-07/REPORT.md). Compare rows within the same benchmark, file state and record size.
 
 These are observations on this machine, with other processes' I/O not isolated. Its device queue reports `write through`; the 0.41 us initialized direct `fdatasync` average includes an actual sync call after every write, verified separately with strace. Interpret it alongside the 16.10 us mean write time and [Linux write-cache handling](https://docs.kernel.org/block/writeback_cache_control.html), rather than treating it as a general storage guarantee.
 
