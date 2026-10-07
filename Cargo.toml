@@ -1,0 +1,16 @@
+[package]
+name = "fsync-bench"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.77"
+publish = false
+default-run = "fsync-bench"
+description = "Linux fsync/fdatasync and WAL benchmarks: append, fallocate, initialized extents, buffered and direct I/O"
+license = "MIT"
+repository = "https://github.com/JinheLin/fsync-bench"
+
+[dependencies]
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

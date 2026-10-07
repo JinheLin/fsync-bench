@@ -1,0 +1,18 @@
+Client date: 2026-10-04 (Asia/Shanghai)
+Three workloads run sequentially with identical parameters; other processes I/O was not controlled.
+All 6 rounds use 2000 measured writes + 100 warmup writes of 16 KiB, one sync per write.
+Fallocate file is 64 MiB; 2100 x 16 KiB = 32.8125 MiB stays inside the preallocated length.
+
+rustc 1.92.0 (ded5c06cf 2025-12-08)
+
+Linux 5.14.0-162.6.1.el9_1.x86_64
+
+SOURCE       FSTYPE OPTIONS
+/dev/nvme0n1 xfs    rw,relatime,attr2,inode64,logbufs=8,logbsize=32k,noquota
+
+nvme0n1 INTEL SSDPE2KX040T8    0  3.6T
+
+Reproduction command:
+./target/release/fsync-bench --dir <TARGET_DIR> --workloads append,fallocate,overwrite --file-size 64M --block-sizes 16K --iterations 2000 --warmup 100 --rounds 6 --sync-every 1 --csv results/fallocate-comparison.csv
+
+Validation: 4 unit tests; clippy passed; fallocate smoke and syscall trace passed; XFS extent probe confirms unwritten-to-written conversion.

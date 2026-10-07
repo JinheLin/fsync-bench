@@ -1,0 +1,6 @@
+/target/
+/bench-data/
+/results/*
+!/results/historical/
+!/results/2026-10-07/
+__pycache__/

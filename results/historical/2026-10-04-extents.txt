@@ -1,0 +1,18 @@
+Independent XFS extent probe, outside the benchmark timing.
+fallocate64(fd, 0, 0, 67108864), fsync; then one 16 KiB pwrite at offset 0 and fdatasync.
+File size stays 67108864 bytes before and after the write.
+
+Before first write:
+Filesystem type is: 58465342
+File size of <TARGET_DIR>/extent-probe-1e4qghgb/probe.dat is 67108864 (16384 blocks of 4096 bytes)
+ ext:     logical_offset:        physical_offset: length:   expected: flags:
+   0:        0..   16383:   46087193..  46103576:  16384:             last,unwritten,eof
+<TARGET_DIR>/extent-probe-1e4qghgb/probe.dat: 1 extent found
+
+After first write and fdatasync:
+Filesystem type is: 58465342
+File size of <TARGET_DIR>/extent-probe-1e4qghgb/probe.dat is 67108864 (16384 blocks of 4096 bytes)
+ ext:     logical_offset:        physical_offset: length:   expected: flags:
+   0:        0..       3:   46087193..  46087196:      4:
+   1:        4..   16383:   46087197..  46103576:  16380:             last,unwritten,eof
+<TARGET_DIR>/extent-probe-1e4qghgb/probe.dat: 1 extent found

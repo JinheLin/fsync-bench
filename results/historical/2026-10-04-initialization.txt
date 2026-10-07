@@ -1,0 +1,35 @@
+Independent initialization probe: 64 MiB fallocate(mode=0) on local NVMe/XFS.
+Times include one final fdatasync, exclude fallocate and initial fsync.
+One run per method; these are examples, not a stable ranking.
+Only extent flag columns are examined.
+
+sync-only: 0.01 ms; unwritten remains=True; length=67108864
+Filesystem type is: 58465342
+File size of <TARGET_DIR>/init-probe-mmprjsed/sync-only.dat is 67108864 (16384 blocks of 4096 bytes)
+ ext:     logical_offset:        physical_offset: length:   expected: flags:
+   0:        0..   16383:  933419405.. 933435788:  16384:             last,unwritten,eof
+<TARGET_DIR>/init-probe-mmprjsed/sync-only.dat: 1 extent found
+
+
+zero-range: 0.10 ms; unwritten remains=True; length=67108864
+Filesystem type is: 58465342
+File size of <TARGET_DIR>/init-probe-mmprjsed/zero-range.dat is 67108864 (16384 blocks of 4096 bytes)
+ ext:     logical_offset:        physical_offset: length:   expected: flags:
+   0:        0..   16383:  785192587.. 785208970:  16384:             last,unwritten,eof
+<TARGET_DIR>/init-probe-mmprjsed/zero-range.dat: 1 extent found
+
+
+one-byte-per-block: 100.35 ms; unwritten remains=False; length=67108864
+Filesystem type is: 58465342
+File size of <TARGET_DIR>/init-probe-mmprjsed/one-byte-per-block.dat is 67108864 (16384 blocks of 4096 bytes)
+ ext:     logical_offset:        physical_offset: length:   expected: flags:
+   0:        0..   16383:  840808634.. 840825017:  16384:             last,eof
+<TARGET_DIR>/init-probe-mmprjsed/one-byte-per-block.dat: 1 extent found
+
+
+sequential-1MiB: 82.52 ms; unwritten remains=False; length=67108864
+Filesystem type is: 58465342
+File size of <TARGET_DIR>/init-probe-mmprjsed/sequential-1MiB.dat is 67108864 (16384 blocks of 4096 bytes)
+ ext:     logical_offset:        physical_offset: length:   expected: flags:
+   0:        0..   16383:  953058847.. 953075230:  16384:             last,eof
+<TARGET_DIR>/init-probe-mmprjsed/sequential-1MiB.dat: 1 extent found

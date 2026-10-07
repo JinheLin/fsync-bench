@@ -1,0 +1,25 @@
+Independent XFS probe; outside all benchmark timings.
+64 MiB fallocate(mode=0) + fsync; then 16 KiB pwrite + fdatasync; then full 1 MiB zero writes + fsync.
+EOF remains 64 MiB. First physical mapping unchanged; full initialization removes unwritten flags.
+
+Preallocated:
+Filesystem type is: 58465342
+File size of <PROBE_DIR>/probe.dat is 67108864 (16384 blocks of 4096 bytes)
+ ext:     logical_offset:        physical_offset: length:   expected: flags:
+   0:        0..   16383:  285953825.. 285970208:  16384:             last,unwritten,eof
+<PROBE_DIR>/probe.dat: 1 extent found
+
+First write synced:
+Filesystem type is: 58465342
+File size of <PROBE_DIR>/probe.dat is 67108864 (16384 blocks of 4096 bytes)
+ ext:     logical_offset:        physical_offset: length:   expected: flags:
+   0:        0..       3:  285953825.. 285953828:      4:
+   1:        4..   16383:  285953829.. 285970208:  16380:             last,unwritten,eof
+<PROBE_DIR>/probe.dat: 1 extent found
+
+Fully initialized:
+Filesystem type is: 58465342
+File size of <PROBE_DIR>/probe.dat is 67108864 (16384 blocks of 4096 bytes)
+ ext:     logical_offset:        physical_offset: length:   expected: flags:
+   0:        0..   16383:  285953825.. 285970208:  16384:             last,eof
+<PROBE_DIR>/probe.dat: 1 extent found

@@ -1,0 +1,35 @@
+{
+  "started_utc": "2026-10-07T10:35:21.634835+00:00",
+  "kernel": "5.14.0-162.6.1.el9_1.x86_64",
+  "architecture": "x86_64",
+  "rustc": "rustc 1.92.0 (ded5c06cf 2025-12-08)",
+  "cpu": "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz",
+  "filesystem": {
+    "source": "/dev/nvme0n1",
+    "fstype": "xfs",
+    "options": "rw,relatime,attr2,inode64,logbufs=8,logbsize=32k,noquota"
+  },
+  "device_queue": {
+    "write_cache": "write through",
+    "logical_block_size": "512",
+    "physical_block_size": "512",
+    "rotational": "0",
+    "fua": "0",
+    "model": "INTEL SSDPE2KX040T8"
+  },
+  "build": "cargo build --release --offline (proxy environment unset)",
+  "other_io_isolated": false,
+  "path_policy": "Target and result paths are replaced by placeholders in saved output.",
+  "parameters": {
+    "block_sizes": "16K",
+    "iterations": 2000,
+    "warmup": 100,
+    "rounds": 8,
+    "file_size": "64M"
+  },
+  "commands": [
+    "./target/release/fsync-bench --dir '<TARGET_DIR>' --block-sizes 16K --iterations 2000 --warmup 100 --rounds 8 --file-size 64M --workloads append,fallocate,overwrite --sync-every 1 --methods fsync,fdatasync --csv '<OUTPUT_DIR>/buffered.csv'",
+    "./target/release/wal-bench --dir '<TARGET_DIR>' --block-sizes 16K --iterations 2000 --warmup 100 --rounds 8 --file-size 64M --layouts append,fallocate,initialized --io-modes buffered,direct --alignment 4K --methods fsync,fdatasync --csv '<OUTPUT_DIR>/wal.csv'"
+  ],
+  "finished_utc": "2026-10-07T10:35:39.807625+00:00"
+}

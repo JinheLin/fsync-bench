@@ -1,0 +1,40 @@
+{
+  "smoke": {
+    "wal_cases": 96,
+    "buffered_cases": 72,
+    "readback": "first and last measured records checked by WAL binary",
+    "cleanup": "passed",
+    "rotation": "passed"
+  },
+  "syscalls": [
+    {
+      "io_mode": "buffered",
+      "sync": "fsync",
+      "writes": 9,
+      "write_then_sync": "passed",
+      "open_flags": "passed"
+    },
+    {
+      "io_mode": "buffered",
+      "sync": "fdatasync",
+      "writes": 9,
+      "write_then_sync": "passed",
+      "open_flags": "passed"
+    },
+    {
+      "io_mode": "direct",
+      "sync": "fsync",
+      "writes": 9,
+      "write_then_sync": "passed",
+      "open_flags": "passed"
+    },
+    {
+      "io_mode": "direct",
+      "sync": "fdatasync",
+      "writes": 9,
+      "write_then_sync": "passed",
+      "open_flags": "passed"
+    }
+  ],
+  "extents": "passed: allocated physical blocks, first-write conversion, full initialization, fixed EOF"
+}
