@@ -3,4 +3,5 @@
 /results/*
 !/results/historical/
 !/results/2026-10-07/
+!/results/2026-10-07-block-sizes/
 __pycache__/

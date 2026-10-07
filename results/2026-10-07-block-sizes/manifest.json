@@ -1,0 +1,18 @@
+{
+  "started_utc": "2026-10-07T14:03:15.418261+00:00",
+  "sizes_kib": [
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024
+  ],
+  "iterations": 2000,
+  "warmup": 100,
+  "rounds": 8,
+  "fixed_segment_policy": "(iterations + warmup) * block_bytes",
+  "benchmark_source_commit": "3c14b9123fe651ce417df358a382c91957a8c858",
+  "command_template": "python3 scripts/run-size-sweep.py --dir <TARGET_DIR> --output <OUTPUT_DIR> --sizes-kib 32,64,128,256,512,1024 --iterations 2000 --warmup 100 --rounds 8",
+  "finished_utc": "2026-10-07T14:17:03.520746+00:00"
+}

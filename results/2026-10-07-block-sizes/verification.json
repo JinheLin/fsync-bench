@@ -1,0 +1,38 @@
+{
+  "sizes_kib": [
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024
+  ],
+  "buffered_cases": 288,
+  "wal_cases": 576,
+  "measured_writes": 1728000,
+  "measured_syncs": 1728000,
+  "measured_bytes": 594542592000,
+  "aggregate_combinations": 108,
+  "rounds_per_combination": 8,
+  "writes_per_combination": 16000,
+  "checks": [
+    "per-round CSV schema/counts/rates",
+    "file capacity covers warmup and measurement",
+    "whole commit mean equals write plus sync",
+    "WAL pooled p99 matches program stdout",
+    "WAL first/last record and file length checks passed in every case",
+    "scratch files cleaned",
+    "public paths and documentation links checked"
+  ],
+  "size_sweep_runner_smoke": {
+    "sizes_kib": [
+      32,
+      64
+    ],
+    "iterations": 2,
+    "warmup": 1,
+    "rounds": 1,
+    "combinations": 36,
+    "measured_writes": 72
+  }
+}

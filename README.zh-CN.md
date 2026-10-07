@@ -2,7 +2,7 @@
 
 用 Rust 测试 Linux `fsync`、`fdatasync`、`fallocate`，以及单 writer WAL 的 buffered / direct I/O。只使用 Rust 标准库与 Linux libc 接口，无第三方 Rust 依赖。支持 Linux x86_64、Rust 1.77+，MIT 许可证。
 
-[English](README.md) · [本次完整报告](results/2026-10-07/REPORT.md) · [历史数据](results/historical/README.md) · [WAL 详细说明](WAL-BENCH.md)
+[English](README.md) · [16 KiB 报告](results/2026-10-07/REPORT.md) · [32 KiB–1 MiB 报告](results/2026-10-07-block-sizes/REPORT.md) · [历史数据](results/historical/README.md) · [WAL 详细说明](WAL-BENCH.md)
 
 ## 编译与复现
 
@@ -19,6 +19,15 @@ python3 scripts/run-benchmarks.py \
 ```
 
 脚本需要 Python 3.9+ 和 `findmnt`。默认顺序运行两个 benchmark：16 KiB block、每 case 每轮 2000 次测量与 100 次预热、8 轮、64 MiB 固定长度文件、每次写入后同步。输出逐轮 CSV、WAL 合并分位数、运行环境、复现命令和报告。使用 `--help` 查看可修改的参数。
+
+测试 32、64、128、256、512、1024 KiB，保持相同的测量数、预热数和轮数：
+
+```sh
+python3 scripts/run-size-sweep.py \
+    --dir /path/on/test/disk --output results/my-size-sweep
+```
+
+这个脚本逐个大小运行两个程序的全部文件状态与同步方法。每种大小的固定文件容量为 `(iterations + warmup) × block_bytes`，从 32 KiB 写入的 65.625 MiB 到 1 MiB 写入的 2100 MiB。同一写入大小的各方法容量相同，已初始化与 fallocate 文件的整个预热、测量区间都不增长 EOF、不绕回。不同大小对应不同容量的段；[汇总报告](results/2026-10-07-block-sizes/REPORT.md)比较完整提交均值、WAL 合并 p99 和吞吐。
 
 ## 四种情况
 

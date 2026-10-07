@@ -2,7 +2,7 @@
 
 Rust micro-benchmarks for Linux `fsync`, `fdatasync` and `fallocate`, including a single-writer WAL comparison of buffered I/O and `O_DIRECT`. No third-party Rust dependencies. Linux x86_64, Rust 1.77+; MIT licensed.
 
-[中文说明](README.zh-CN.md) · [WAL details](WAL-BENCH.md) · [Latest results](results/2026-10-07/REPORT.md) · [Historical results](results/historical/README.md)
+[中文说明](README.zh-CN.md) · [WAL details](WAL-BENCH.md) · [16 KiB results](results/2026-10-07/REPORT.md) · [32 KiB–1 MiB sweep](results/2026-10-07-block-sizes/REPORT.md) · [Historical results](results/historical/README.md)
 
 ## Build and reproduce
 
@@ -20,6 +20,15 @@ python3 scripts/run-benchmarks.py \
 ```
 
 The script runs both binaries sequentially with 16 KiB blocks, 2,000 measured writes plus 100 warmup writes per case per round, 8 rounds, 64 MiB fixed segments, and one sync per write. It saves per-round CSV, pooled WAL statistics, environment, commands and a report. Parameters can be overridden; use `--help`. Build in release mode for performance measurements.
+
+To compare 32, 64, 128, 256, 512 and 1024 KiB writes with the same iteration/warmup/round counts:
+
+```sh
+python3 scripts/run-size-sweep.py \
+    --dir /path/on/test/disk --output results/my-size-sweep
+```
+
+The sweep runs both binaries and all file states for each size. Fixed file capacity is `(iterations + warmup) × block_bytes`: 65.625 MiB for 32 KiB writes through 2100 MiB for 1 MiB writes. Capacity is identical across methods at a given write size. Every initialized/fallocated case stays within EOF and never wraps. Capacity varies across sizes; results therefore represent correspondingly sized segments. Complete commit means, pooled WAL p99 and throughput are compared in the [sweep report](results/2026-10-07-block-sizes/REPORT.md).
 
 Each case creates an independent file in a newly created child of `--dir`. Setup, initialization, directory syncs, warmup, final drain, readback and deletion are outside the measured interval. Existing files are preserved; output CSV files are never overwritten. Forced termination can leave the benchmark's temporary directory behind.
 
